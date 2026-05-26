@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #008080;
+  --color-primary-dark: #006666;
+  --color-primary-light: #e6f2f2;
+  --color-secondary: #005c99;
+  --color-secondary-dark: #004d80;
+  --color-secondary-light: #e6f0f5;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text-main: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    background-color: var(--color-background);
+    color: var(--color-text-main);
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply antialiased;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg font-medium transition-all hover:bg-[var(--color-primary-dark)] hover:shadow-md active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-[var(--color-primary)] border border-[var(--color-primary)] px-6 py-2 rounded-lg font-medium transition-all hover:bg-[var(--color-primary-light)] active:scale-95;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-[var(--color-border)] p-6 transition-all hover:shadow-md;
+  }
+
+  .input-field {
+    @apply w-full border border-[var(--color-border)] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-shadow;
+  }
+}
