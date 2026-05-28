@@ -5,6 +5,7 @@ class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: Optional[str] = None
+    mrp: Optional[str] = None
     image_url: Optional[str] = None
     benefits: Optional[str] = None
     ingredients: Optional[str] = None

@@ -13,7 +13,7 @@ const AdminProducts = () => {
   const [imagePreview, setImagePreview] = useState(null);
   
   const [newProduct, setNewProduct] = useState({
-    name: '', price: '', category_id: '', description: ''
+    name: '', price: '', mrp: '', category_id: '', description: ''
   });
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const AdminProducts = () => {
       
       // Reset form
       setIsModalOpen(false);
-      setNewProduct({ name: '', price: '', category_id: '', description: '' });
+      setNewProduct({ name: '', price: '', mrp: '', category_id: '', description: '' });
       setImageFile(null);
       setImagePreview(null);
     } catch (error) {
@@ -200,6 +200,13 @@ const AdminProducts = () => {
                   <input 
                     type="text" required className="input-field" placeholder="e.g. Enquire"
                     value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-main)] mb-2">MRP (Maximum Retail Price)</label>
+                  <input 
+                    type="text" className="input-field" placeholder="e.g. ₹500"
+                    value={newProduct.mrp} onChange={(e) => setNewProduct({...newProduct, mrp: e.target.value})}
                   />
                 </div>
                 <div>

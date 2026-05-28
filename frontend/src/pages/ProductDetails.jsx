@@ -73,7 +73,10 @@ const ProductDetails = () => {
               {product.category?.name || 'Uncategorized'}
             </span>
             <h1 className="text-4xl font-bold text-[var(--color-text-main)] mb-2">{product.name}</h1>
-            <p className="text-3xl font-bold text-[var(--color-primary)] mb-6">{product.price}</p>
+            <p className="text-3xl font-bold text-[var(--color-primary)] mb-6">
+              {product.price}
+              {product.mrp && <span className="text-xl text-gray-400 line-through ml-3">{product.mrp}</span>}
+            </p>
             
             <p className="text-lg text-[var(--color-text-muted)] mb-8 leading-relaxed">
               {product.description}
@@ -114,9 +117,9 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            <button className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 text-lg">
+            <Link to={`/contact?product=${encodeURIComponent(product.name)}`} className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 text-lg">
               <MessageSquare className="h-5 w-5" /> Enquire Now
-            </button>
+            </Link>
           </motion.div>
         </div>
       </div>

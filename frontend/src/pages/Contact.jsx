@@ -1,12 +1,22 @@
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { enquiryService } from '../services/api';
 
 const Contact = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const product = params.get('product');
+    if (product) {
+      setFormData(prev => ({ ...prev, message: `I am interested in ${product}. Please provide more details.` }));
+    }
+  }, [location]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();

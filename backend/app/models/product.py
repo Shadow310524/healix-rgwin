@@ -9,6 +9,7 @@ class Product(Base):
     name = Column(String, index=True, nullable=False)
     description = Column(Text, nullable=True)
     price = Column(String, nullable=True)
+    mrp = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     benefits = Column(Text, nullable=True) 
     ingredients = Column(Text, nullable=True)

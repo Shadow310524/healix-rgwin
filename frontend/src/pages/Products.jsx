@@ -99,7 +99,10 @@ const Products = () => {
                 <p className="text-sm text-[var(--color-text-muted)] mb-4 line-clamp-3 leading-relaxed">{product.description}</p>
               </div>
               <div className="flex items-center justify-between p-5 pt-0 mt-auto border-t border-gray-100">
-                <span className="text-xl font-bold text-[var(--color-text-main)] mt-4">{product.price}</span>
+                <div className="mt-4">
+                  <span className="text-xl font-bold text-[var(--color-text-main)]">{product.price}</span>
+                  {product.mrp && <span className="text-sm text-gray-400 line-through ml-2">{product.mrp}</span>}
+                </div>
                 <Link to={`/products/${product.id}`} className="mt-4 p-2 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-full hover:bg-[var(--color-primary)] hover:text-white transform group-hover:translate-x-1 transition-all">
                   <ArrowRight className="h-5 w-5" />
                 </Link>
