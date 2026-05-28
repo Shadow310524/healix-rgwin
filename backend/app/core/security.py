@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 from jose import jwt
-from passlib.context import CryptContext
+import bcrypt
 from app.core.config import settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
 
@@ -21,13 +19,16 @@ def create_access_token(
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def _truncate_password(password: str) -> str:
-    """Truncate password to 72 bytes (bcrypt maximum) to avoid errors on newer bcrypt versions."""
-    return password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(_truncate_password(plain_password), hashed_password)
+    try:
+        # Passwords must be encoded to bytes and truncated to 72 bytes max for bcrypt
+        password_bytes = plain_password.encode("utf-8")[:72]
+        hash_bytes = hashed_password.encode("utf-8")
+        return bcrypt.checkpw(password_bytes, hash_bytes)
+    except Exception:
+        return False
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(_truncate_password(password))
-
+    password_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode("utf-8")
