@@ -1,14 +1,13 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi.concurrency import run_in_threadpool
 from app.api import deps
 from app.core.config import settings
+from app.core.logging_config import get_logger
 from app import models
 import cloudinary
 import cloudinary.uploader
-import logging
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger("healix.upload")
 
 router = APIRouter()
 
@@ -27,25 +26,29 @@ async def upload_image(
 ):
     """
     Upload an image to Cloudinary and return the URL.
+    Uses run_in_threadpool to prevent blocking the event loop
+    while waiting for Cloudinary's synchronous upload.
     """
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
     try:
-        # Read file content
+        # Read file content (async-safe)
         contents = await file.read()
         
-        logger.info(f"Attempting to upload file to Cloudinary: {file.filename}")
+        logger.info(f"Upload started | File: {file.filename} | Size: {len(contents)} bytes | User: {current_user.email}")
         
-        # Upload to Cloudinary
-        result = cloudinary.uploader.upload(
+        # Run synchronous Cloudinary upload in a threadpool to avoid blocking
+        result = await run_in_threadpool(
+            cloudinary.uploader.upload,
             contents,
             folder="healix_products",
             resource_type="image"
         )
         
-        logger.info(f"Cloudinary upload successful: {result.get('secure_url')}")
-        return {"url": result.get("secure_url")}
+        url = result.get("secure_url")
+        logger.info(f"Upload successful | File: {file.filename} | URL: {url}")
+        return {"url": url}
     except Exception as e:
-        logger.error(f"Cloudinary upload error: {str(e)}", exc_info=True)
+        logger.error(f"Upload failed | File: {file.filename} | Error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")

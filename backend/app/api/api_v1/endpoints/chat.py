@@ -7,6 +7,9 @@ import google.generativeai as genai
 from app.api import deps
 from app.services.rag_service import retrieve_relevant_chunks
 from app.core.system_prompts import RAG_CHATBOT_SYSTEM_PROMPT
+from app.core.logging_config import get_logger
+
+logger = get_logger("healix.chat")
 
 router = APIRouter()
 
@@ -21,10 +24,15 @@ class ChatResponse(BaseModel):
     reply: str
 
 @router.post("/", response_model=ChatResponse)
-async def chat_with_bot(
+def chat_with_bot(
     request: ChatRequest,
     db: Session = Depends(deps.get_db)
 ):
+    """
+    NOTE: This is intentionally a regular `def` (not `async def`).
+    FastAPI runs regular `def` endpoints in a threadpool, which prevents
+    the synchronous Gemini API call from blocking other users' requests.
+    """
     try:
         # 1. Get the latest user query
         user_messages = [m for m in request.messages if m.role == "user"]
@@ -32,8 +40,11 @@ async def chat_with_bot(
             raise HTTPException(status_code=400, detail="No user message provided")
         latest_query = user_messages[-1].content
 
+        logger.info(f"Chat request received | Query: '{latest_query}'")
+
         # 2. Retrieve relevant semantic chunks from DB
         relevant_chunks = retrieve_relevant_chunks(db, latest_query, top_k=3)
+        logger.info(f"RAG retrieved {len(relevant_chunks)} chunks for query")
         
         # 3. Format the context
         context_text = "\n\n".join([f"- {chunk['text']}" for chunk in relevant_chunks])
@@ -61,7 +72,11 @@ async def chat_with_bot(
         chat = model.start_chat(history=formatted_history)
         response = chat.send_message(latest_query)
         
+        logger.info(f"Chat response sent | Reply length: {len(response.text)} chars")
         return ChatResponse(reply=response.text)
 
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Chat error for query '{latest_query}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

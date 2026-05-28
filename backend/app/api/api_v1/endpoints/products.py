@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app import crud, models, schemas
 from app.services.rag_service import process_product_for_rag
+from app.core.logging_config import get_logger
+
+logger = get_logger("healix.products")
 
 router = APIRouter()
 
@@ -14,6 +17,7 @@ def read_products(
     limit: int = 100,
 ) -> Any:
     products = crud.get_products(db, skip=skip, limit=limit)
+    logger.info(f"Products listed | Count: {len(products)}")
     return products
 
 @router.post("/", response_model=schemas.Product)
@@ -29,4 +33,5 @@ def create_product(
     # Process the product in the background for RAG embeddings
     background_tasks.add_task(process_product_for_rag, db, product)
     
+    logger.info(f"Product CREATED | ID: {product.id} | Name: '{product.name}' | By: {current_user.email}")
     return product
