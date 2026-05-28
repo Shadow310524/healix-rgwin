@@ -35,8 +35,8 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-[var(--color-primary-light)]">Contact</h3>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>rgwinhealthcare@gmail.com</li>
-              <li>+1 (555) 123-4567</li>
-              <li>123 Healthcare Ave, NY</li>
+              <li>+91 8248703790</li>
+              <li>431, Bannerghatta Main Road, Hulimavu, Bangalore</li>
             </ul>
           </div>
         </div>

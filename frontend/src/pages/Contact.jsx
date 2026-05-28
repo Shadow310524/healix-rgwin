@@ -66,7 +66,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-[var(--color-text-main)]">Office Address</h3>
-                  <p className="text-[var(--color-text-muted)]">123 Healthcare Ave, Innovation Park<br />New York, NY 10001</p>
+                  <p className="text-[var(--color-text-muted)]">RG win Health Care<br />431, Bannerghatta Main Road,<br />Hulimavu, Bangalore-560072</p>
                 </div>
               </div>
             </div>

@@ -27,5 +27,5 @@ def create_enquiry(
     enquiry_in: schemas.EnquiryCreate,
 ) -> Any:
     enquiry = crud.create_enquiry(db=db, enquiry=enquiry_in)
-    logger.info(f"Enquiry CREATED | ID: {enquiry.id} | Name: '{enquiry_in.name}' | Email: '{enquiry_in.email}' | Product: '{enquiry_in.product_name}'")
+    logger.info(f"Enquiry CREATED | ID: {enquiry.id} | Name: '{enquiry_in.name}' | Email: '{enquiry_in.email}'")
     return enquiry
