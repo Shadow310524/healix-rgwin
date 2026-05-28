@@ -37,6 +37,27 @@ def create_product(db: Session, product: product_schema.ProductCreate):
     db.refresh(db_product)
     return db_product
 
+def update_product(db: Session, product_id: int, product: product_schema.ProductUpdate):
+    db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id).first()
+    if not db_product:
+        return None
+    
+    update_data = product.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_product, key, value)
+        
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+def delete_product(db: Session, product_id: int):
+    db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id).first()
+    if not db_product:
+        return None
+    db.delete(db_product)
+    db.commit()
+    return db_product
+
 # Enquiry CRUD
 def get_enquiries(db: Session, skip: int = 0, limit: int = 100):
     return db.query(enquiry_model.Enquiry).order_by(enquiry_model.Enquiry.created_at.desc()).offset(skip).limit(limit).all()

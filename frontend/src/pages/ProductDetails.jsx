@@ -75,7 +75,7 @@ const ProductDetails = () => {
             <h1 className="text-4xl font-bold text-[var(--color-text-main)] mb-2">{product.name}</h1>
             <p className="text-3xl font-bold text-[var(--color-primary)] mb-6">
               {product.price}
-              {product.mrp && <span className="text-xl text-gray-400 line-through ml-3">{product.mrp}</span>}
+              {product.mrp && <span className="text-2xl font-bold text-gray-500 line-through ml-3">{product.mrp}</span>}
             </p>
             
             <p className="text-lg text-[var(--color-text-muted)] mb-8 leading-relaxed">

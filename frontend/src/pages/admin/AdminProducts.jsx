@@ -11,6 +11,7 @@ const AdminProducts = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [editingProductId, setEditingProductId] = useState(null);
   
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', mrp: '', category_id: '', description: ''
@@ -50,34 +51,44 @@ const AdminProducts = () => {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
-    if (!imageFile) {
+    if (!imageFile && !editingProductId) {
       toast.error("Please select an image");
       return;
     }
     
     setIsSubmitting(true);
     try {
-      // 1. Upload image to Cloudinary
-      toast.loading("Uploading image...", { id: "upload-toast" });
-      const uploadRes = await uploadService.uploadImage(imageFile);
-      const imageUrl = uploadRes.url;
-      toast.dismiss("upload-toast");
+      let imageUrl = newProduct.image_url;
+      if (imageFile) {
+        toast.loading("Uploading image...", { id: "upload-toast" });
+        const uploadRes = await uploadService.uploadImage(imageFile);
+        imageUrl = uploadRes.url;
+        toast.dismiss("upload-toast");
+      }
 
-      // 2. Create product
-      const created = await productService.createProduct({
+      const productPayload = {
         ...newProduct,
         image_url: imageUrl,
         category_id: parseInt(newProduct.category_id)
-      });
-      
-      const categoryObj = categories.find(c => c.id === parseInt(newProduct.category_id));
-      const productWithCat = { ...created, category: categoryObj };
-      
-      setProducts([...products, productWithCat]);
-      toast.success('Product created successfully!');
+      };
+
+      if (editingProductId) {
+        const updated = await productService.updateProduct(editingProductId, productPayload);
+        const categoryObj = categories.find(c => c.id === parseInt(updated.category_id));
+        const updatedWithCat = { ...updated, category: categoryObj };
+        setProducts(products.map(p => p.id === editingProductId ? updatedWithCat : p));
+        toast.success('Product updated successfully!');
+      } else {
+        const created = await productService.createProduct(productPayload);
+        const categoryObj = categories.find(c => c.id === parseInt(created.category_id));
+        const createdWithCat = { ...created, category: categoryObj };
+        setProducts([...products, createdWithCat]);
+        toast.success('Product created successfully!');
+      }
       
       // Reset form
       setIsModalOpen(false);
+      setEditingProductId(null);
       setNewProduct({ name: '', price: '', mrp: '', category_id: '', description: '' });
       setImageFile(null);
       setImagePreview(null);
@@ -87,6 +98,33 @@ const AdminProducts = () => {
       toast.error('Failed to create product');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditClick = (product) => {
+    setEditingProductId(product.id);
+    setNewProduct({
+      name: product.name,
+      price: product.price || '',
+      mrp: product.mrp || '',
+      category_id: product.category_id || '',
+      description: product.description || '',
+      image_url: product.image_url || ''
+    });
+    setImagePreview(product.image_url);
+    setImageFile(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await productService.deleteProduct(id);
+      setProducts(products.filter(p => p.id !== id));
+      toast.success("Product deleted successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete product");
     }
   };
 
@@ -147,10 +185,10 @@ const AdminProducts = () => {
                     {product.price}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">
+                    <button onClick={() => handleEditClick(product)} className="text-indigo-600 hover:text-indigo-900 mr-3">
                       <Edit className="h-4 w-4" />
                     </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-900">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
@@ -165,9 +203,10 @@ const AdminProducts = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-[var(--color-border)] shrink-0">
-              <h3 className="text-lg font-bold text-[var(--color-text-main)]">Add New Product</h3>
+              <h3 className="text-lg font-bold text-[var(--color-text-main)]">{editingProductId ? 'Edit Product' : 'Add New Product'}</h3>
               <button onClick={() => {
                 setIsModalOpen(false);
+                setEditingProductId(null);
                 setImagePreview(null);
                 setImageFile(null);
               }} className="text-gray-400 hover:text-gray-600">
@@ -247,7 +286,7 @@ const AdminProducts = () => {
                   type="submit" disabled={isSubmitting}
                   className="btn-primary disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create Product'}
+                  {isSubmitting ? 'Saving...' : (editingProductId ? 'Update Product' : 'Create Product')}
                 </button>
               </div>
             </form>
