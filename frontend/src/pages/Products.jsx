@@ -97,6 +97,11 @@ const Products = () => {
                 <span className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-wider">{product.category?.name || 'Uncategorized'}</span>
                 <h3 className="text-xl font-bold text-[var(--color-text-main)] mt-2 mb-2 group-hover:text-[var(--color-primary)] transition-colors">{product.name}</h3>
                 <p className="text-sm text-[var(--color-text-muted)] mb-4 line-clamp-3 leading-relaxed">{product.description}</p>
+                {product.ingredients && product.ingredients.length > 0 && (
+                  <div className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded border border-gray-200">
+                    <span className="opacity-75">Salt: </span>{product.ingredients[0]}
+                  </div>
+                )}
               </div>
               <div className="flex items-center justify-between p-5 pt-0 mt-auto border-t border-gray-100">
                 <div className="mt-4">

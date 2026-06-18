@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from .category import Category
 
@@ -8,8 +8,8 @@ class ProductBase(BaseModel):
     price: Optional[str] = None
     mrp: Optional[str] = None
     image_url: Optional[str] = None
-    benefits: Optional[str] = None
-    ingredients: Optional[str] = None
+    benefits: Optional[List[str]] = None
+    ingredients: Optional[List[str]] = None
     category_id: Optional[int] = None
 
 class ProductCreate(ProductBase):

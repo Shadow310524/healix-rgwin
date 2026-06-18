@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, JSON
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -11,8 +11,8 @@ class Product(Base):
     price = Column(String, nullable=True)
     mrp = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
-    benefits = Column(Text, nullable=True) 
-    ingredients = Column(Text, nullable=True)
+    benefits = Column(JSON, nullable=True) 
+    ingredients = Column(JSON, nullable=True)
     
     category_id = Column(Integer, ForeignKey("categories.id"))
     category = relationship("Category", back_populates="products")

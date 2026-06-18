@@ -41,9 +41,9 @@ const ProductDetails = () => {
     );
   }
 
-  // Parse strings into arrays if they exist
-  const benefits = product.benefits ? product.benefits.split(',').map(b => b.trim()) : [];
-  const ingredients = product.ingredients ? product.ingredients.split(',').map(i => i.trim()) : [];
+  // API now returns these as JSON arrays directly
+  const benefits = product.benefits || [];
+  const ingredients = product.ingredients || [];
 
   return (
     <div className="py-12 bg-white min-h-screen">

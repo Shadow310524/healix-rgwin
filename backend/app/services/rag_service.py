@@ -9,7 +9,7 @@ from app.core.config import settings
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 # Using the standard embedding model supported by the current SDK
-EMBEDDING_MODEL = "models/gemini-embedding-2"
+EMBEDDING_MODEL = "models/text-embedding-004"
 
 def get_embedding(text: str) -> list[float]:
     """Generates a vector embedding for a given text string."""
