@@ -54,6 +54,11 @@ def delete_product(db: Session, product_id: int):
     db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id).first()
     if not db_product:
         return None
+        
+    # Prevent RAG hallucination by deleting all text chunks associated with this product
+    from app.models.product_chunk import ProductChunk
+    db.query(ProductChunk).filter(ProductChunk.product_id == product_id).delete()
+    
     db.delete(db_product)
     db.commit()
     return db_product

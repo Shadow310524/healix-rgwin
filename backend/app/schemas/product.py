@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
+from .category import Category
 
 class ProductBase(BaseModel):
     name: str
@@ -19,5 +20,6 @@ class ProductUpdate(ProductBase):
 
 class Product(ProductBase):
     id: int
+    category: Optional[Category] = None
 
     model_config = {'from_attributes': True}
