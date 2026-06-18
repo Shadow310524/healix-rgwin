@@ -55,6 +55,9 @@ def delete_product(db: Session, product_id: int):
     if not db_product:
         return None
         
+    # Eagerly load category to prevent DetachedInstanceError when FastAPI serializes the response
+    _ = db_product.category
+        
     # Prevent RAG hallucination by deleting all text chunks associated with this product
     from app.models.product_chunk import ProductChunk
     db.query(ProductChunk).filter(ProductChunk.product_id == product_id).delete()

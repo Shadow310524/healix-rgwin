@@ -14,8 +14,11 @@ const AdminProducts = () => {
   const [editingProductId, setEditingProductId] = useState(null);
   
   const [newProduct, setNewProduct] = useState({
-    name: '', price: '', mrp: '', category_id: '', description: ''
+    name: '', price: '', mrp: '', category_id: '', description: '',
+    benefits: [], ingredients: []
   });
+  const [newBenefit, setNewBenefit] = useState('');
+  const [newIngredient, setNewIngredient] = useState('');
 
   useEffect(() => {
     loadData();
@@ -49,9 +52,25 @@ const AdminProducts = () => {
     }
   };
 
+  const addListItem = (field, value, setVal) => {
+    if (!value.trim()) return;
+    setNewProduct(prev => ({
+      ...prev,
+      [field]: [...(prev[field] || []), value.trim()]
+    }));
+    setVal('');
+  };
+
+  const removeListItem = (field, index) => {
+    setNewProduct(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
   const handleCreateProduct = async (e) => {
     e.preventDefault();
-    if (!imageFile && !editingProductId) {
+    if (!imageFile && !editingProductId && !newProduct.image_url) {
       toast.error("Please select an image");
       return;
     }
@@ -73,13 +92,17 @@ const AdminProducts = () => {
       };
 
       if (editingProductId) {
+        console.log("Sending UPDATE request for ID:", editingProductId, "Payload:", productPayload);
         const updated = await productService.updateProduct(editingProductId, productPayload);
+        console.log("Update success response:", updated);
         const categoryObj = categories.find(c => c.id === parseInt(updated.category_id));
         const updatedWithCat = { ...updated, category: categoryObj };
         setProducts(products.map(p => p.id === editingProductId ? updatedWithCat : p));
         toast.success('Product updated successfully!');
       } else {
+        console.log("Sending CREATE request. Payload:", productPayload);
         const created = await productService.createProduct(productPayload);
+        console.log("Create success response:", created);
         const categoryObj = categories.find(c => c.id === parseInt(created.category_id));
         const createdWithCat = { ...created, category: categoryObj };
         setProducts([...products, createdWithCat]);
@@ -89,13 +112,15 @@ const AdminProducts = () => {
       // Reset form
       setIsModalOpen(false);
       setEditingProductId(null);
-      setNewProduct({ name: '', price: '', mrp: '', category_id: '', description: '' });
+      setNewProduct({ name: '', price: '', mrp: '', category_id: '', description: '', benefits: [], ingredients: [] });
+      setNewBenefit('');
+      setNewIngredient('');
       setImageFile(null);
       setImagePreview(null);
     } catch (error) {
       toast.dismiss("upload-toast");
       console.error(error);
-      toast.error('Failed to create product');
+      toast.error('Failed to save product');
     } finally {
       setIsSubmitting(false);
     }
@@ -109,8 +134,12 @@ const AdminProducts = () => {
       mrp: product.mrp || '',
       category_id: product.category_id || '',
       description: product.description || '',
-      image_url: product.image_url || ''
+      image_url: product.image_url || '',
+      benefits: product.benefits || [],
+      ingredients: product.ingredients || []
     });
+    setNewBenefit('');
+    setNewIngredient('');
     setImagePreview(product.image_url);
     setImageFile(null);
     setIsModalOpen(true);
@@ -235,16 +264,9 @@ const AdminProducts = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-main)] mb-2">Price Label</label>
+                  <label className="block text-sm font-medium text-[var(--color-text-main)] mb-2">MRP (₹)</label>
                   <input 
-                    type="text" required className="input-field" placeholder="e.g. Enquire"
-                    value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-main)] mb-2">MRP (Maximum Retail Price)</label>
-                  <input 
-                    type="text" className="input-field" placeholder="e.g. ₹500"
+                    type="text" required className="input-field" placeholder="e.g. 450"
                     value={newProduct.mrp} onChange={(e) => setNewProduct({...newProduct, mrp: e.target.value})}
                   />
                 </div>
@@ -262,7 +284,7 @@ const AdminProducts = () => {
                       )}
                       <input 
                         type="file" className="hidden" accept="image/*"
-                        onChange={handleImageChange} required
+                        onChange={handleImageChange}
                       />
                     </label>
                   </div>
@@ -273,6 +295,42 @@ const AdminProducts = () => {
                     rows="3" required className="input-field"
                     value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-main)] mb-2">Active Ingredients</label>
+                  <div className="flex gap-2 mb-2">
+                    <input 
+                      type="text" className="input-field" placeholder="e.g. Progesterone IP 300mg"
+                      value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)}
+                      onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addListItem('ingredients', newIngredient, setNewIngredient); } }}
+                    />
+                    <button type="button" onClick={() => addListItem('ingredients', newIngredient, setNewIngredient)} className="btn-secondary whitespace-nowrap">Add</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {newProduct.ingredients?.map((ing, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 border border-gray-200 rounded-full text-sm text-gray-700">
+                        {ing} <button type="button" onClick={() => removeListItem('ingredients', idx)} className="text-gray-400 hover:text-red-500"><X className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-main)] mb-2">Key Benefits</label>
+                  <div className="flex gap-2 mb-2">
+                    <input 
+                      type="text" className="input-field" placeholder="e.g. Sustained Release"
+                      value={newBenefit} onChange={(e) => setNewBenefit(e.target.value)}
+                      onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addListItem('benefits', newBenefit, setNewBenefit); } }}
+                    />
+                    <button type="button" onClick={() => addListItem('benefits', newBenefit, setNewBenefit)} className="btn-secondary whitespace-nowrap">Add</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {newProduct.benefits?.map((ben, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-sm text-blue-700">
+                        {ben} <button type="button" onClick={() => removeListItem('benefits', idx)} className="text-blue-400 hover:text-blue-600"><X className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end gap-3 mt-8">

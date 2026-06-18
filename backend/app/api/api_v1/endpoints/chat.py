@@ -64,13 +64,15 @@ def chat_with_bot(
             formatted_history.append({"role": role, "parts": [msg.content]})
 
         # 5. Call Gemini Chat Model
-        model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            system_instruction=system_instruction
-        )
+        # We use the current active generation model
+        model = genai.GenerativeModel(model_name="gemini-2.5-flash")
         
         chat = model.start_chat(history=formatted_history)
-        response = chat.send_message(latest_query)
+        
+        # Inject system instructions directly into the prompt since gemini-pro 
+        # requires it this way instead of a system_instruction parameter
+        final_prompt = f"SYSTEM INSTRUCTIONS:\n{system_instruction}\n\nUSER QUESTION: {latest_query}"
+        response = chat.send_message(final_prompt)
         
         logger.info(f"Chat response sent | Reply length: {len(response.text)} chars")
         return ChatResponse(reply=response.text)

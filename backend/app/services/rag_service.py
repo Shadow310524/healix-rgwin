@@ -9,7 +9,7 @@ from app.core.config import settings
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 # Using the standard embedding model supported by the current SDK
-EMBEDDING_MODEL = "models/text-embedding-004"
+EMBEDDING_MODEL = "models/gemini-embedding-001"
 
 def get_embedding(text: str) -> list[float]:
     """Generates a vector embedding for a given text string."""
@@ -64,32 +64,53 @@ def chunk_text(text: str, max_words: int = 50) -> list[str]:
         
     return chunks
 
-def process_product_for_rag(db: Session, product: Product):
+from app.db.session import SessionLocal
+
+def process_product_for_rag(product_id: int):
     """Chunks product details, gets embeddings, and saves to DB."""
-    # Build a comprehensive text representation of the product
-    full_text = f"Product Name: {product.name}. "
-    if product.description:
-        full_text += f"Description: {product.description}. "
-    if product.benefits:
-        full_text += f"Benefits: {product.benefits}. "
-    if product.ingredients:
-        full_text += f"Ingredients: {product.ingredients}. "
-        
-    # Chunk the text
-    chunks = chunk_text(full_text)
     
-    # Create DB records
-    for chunk in chunks:
-        embedding = get_embedding(chunk)
-        if embedding:
-            db_chunk = ProductChunk(
-                product_id=product.id,
-                chunk_text=chunk,
-                embedding=embedding
-            )
-            db.add(db_chunk)
+    with SessionLocal() as db:
+        product = db.query(Product).filter(Product.id == product_id).first()
+        if not product:
+            return
             
-    db.commit()
+        # First, delete any existing chunks for this product to prevent duplication
+        delete_product_from_rag(product_id)
+        
+        # Build a comprehensive text representation of the product
+        full_text = f"Product Name: {product.name}. "
+        if product.description:
+            full_text += f"Description: {product.description}. "
+        if product.benefits:
+            full_text += f"Benefits: {product.benefits}. "
+        if product.ingredients:
+            full_text += f"Ingredients: {product.ingredients}. "
+            
+        # Chunk the text
+        chunks = chunk_text(full_text)
+        
+        # Create DB records
+        for chunk in chunks:
+            embedding = get_embedding(chunk)
+            if embedding:
+                db_chunk = ProductChunk(
+                    product_id=product.id,
+                    chunk_text=chunk,
+                    embedding=embedding
+                )
+                db.add(db_chunk)
+                
+        db.commit()
+
+def delete_product_from_rag(product_id: int):
+    """Deletes all RAG chunks associated with a specific product ID."""
+    with SessionLocal() as db:
+        try:
+            db.query(ProductChunk).filter(ProductChunk.product_id == product_id).delete()
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"Error deleting chunks for product {product_id}: {e}")
 
 def cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
     """Calculates cosine similarity between two vectors."""

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.api import deps
 from app import crud, models, schemas
-from app.services.rag_service import process_product_for_rag
+from app.services.rag_service import process_product_for_rag, delete_product_from_rag
 from app.core.logging_config import get_logger
 
 logger = get_logger("healix.products")
@@ -31,7 +31,7 @@ def create_product(
     product = crud.create_product(db=db, product=product_in)
     
     # Process the product in the background for RAG embeddings
-    background_tasks.add_task(process_product_for_rag, db, product)
+    background_tasks.add_task(process_product_for_rag, product.id)
     
     logger.info(f"Product CREATED | ID: {product.id} | Name: '{product.name}' | By: {current_user.email}")
     return product
@@ -50,7 +50,7 @@ def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    background_tasks.add_task(process_product_for_rag, db, product)
+    background_tasks.add_task(process_product_for_rag, product.id)
     
     logger.info(f"Product UPDATED | ID: {product.id} | Name: '{product.name}' | By: {current_user.email}")
     return product
@@ -60,12 +60,15 @@ def delete_product(
     *,
     db: Session = Depends(deps.get_db),
     id: int,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     from fastapi import HTTPException
     product = crud.delete_product(db=db, product_id=id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    
+    background_tasks.add_task(delete_product_from_rag, id)
     
     logger.info(f"Product DELETED | ID: {product.id} | Name: '{product.name}' | By: {current_user.email}")
     return product

@@ -73,10 +73,9 @@ const ProductDetails = () => {
               {product.category?.name || 'Uncategorized'}
             </span>
             <h1 className="text-4xl font-bold text-[var(--color-text-main)] mb-2">{product.name}</h1>
-            <p className="text-3xl font-bold text-[var(--color-primary)] mb-6">
-              {product.price}
-              {product.mrp && <span className="text-2xl font-bold text-gray-500 line-through ml-3">{product.mrp}</span>}
-            </p>
+            <div className="mb-6">
+              {product.mrp && <p className="text-3xl font-black text-[var(--color-primaryDark)]">MRP {product.mrp}</p>}
+            </div>
             
             <p className="text-lg text-[var(--color-text-muted)] mb-8 leading-relaxed">
               {product.description}
@@ -97,26 +96,44 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-[var(--color-text-main)] mb-3">Key Benefits</h3>
-              <ul className="list-disc pl-5 space-y-2 text-[var(--color-text-muted)]">
-                {benefits.map((benefit, idx) => (
-                  <li key={idx}>{benefit}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-[var(--color-text-main)] mb-3">Active Ingredients</h3>
-              <div className="flex flex-wrap gap-2">
-                {ingredients.map((ingredient, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                    {ingredient}
-                  </span>
-                ))}
+            {/* Clinical Overview (For Doctors) */}
+            {ingredients.length > 0 && (
+              <div className="mb-8 bg-gray-50/80 border border-gray-200 rounded-2xl p-6 shadow-inner">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                  Clinical Composition
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {ingredients.map((ing, idx) => (
+                    <div key={idx} className="flex items-start gap-3 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                      <div className="w-2 h-2 mt-2 rounded-full bg-[var(--color-primary)]"></div>
+                      <span className="text-[var(--color-text-main)] font-semibold text-sm leading-snug">{ing}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
+            {/* Key Benefits (For Customers/Patients) */}
+            {benefits.length > 0 && (
+              <div className="mb-10">
+                <h3 className="text-xl font-bold text-[var(--color-text-main)] mb-6 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg>
+                  Why choose this?
+                </h3>
+                <div className="space-y-4">
+                  {benefits.map((ben, idx) => (
+                    <div key={idx} className="flex items-center gap-4 bg-green-50/50 p-4 rounded-xl border border-green-100/50 hover:bg-green-50 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-green-100 rounded-full text-green-600">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                      </div>
+                      <span className="text-[var(--color-text-main)] font-medium text-[15px]">{ben}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )} 
+            
             <Link to={`/contact?product=${encodeURIComponent(product.name)}`} className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 text-lg">
               <MessageSquare className="h-5 w-5" /> Enquire Now
             </Link>
