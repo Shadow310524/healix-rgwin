@@ -16,3 +16,4 @@ numpy>=1.26.0
 pydantic[email]
 slowapi>=0.1.9
 limits>=3.6.0
+pgvector>=0.2.5
