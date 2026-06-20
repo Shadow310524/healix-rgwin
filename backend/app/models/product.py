@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, JSON, Boolean
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -14,5 +14,16 @@ class Product(Base):
     benefits = Column(JSON, nullable=True) 
     ingredients = Column(JSON, nullable=True)
     
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    # Audit trail & recovery: soft delete indicator
+    is_deleted = Column(Boolean, default=False, index=True, nullable=False)
+    
+    # Concurrency control: Optimistic locking version
+    version_id = Column(Integer, default=1, nullable=False)
+    
+    # Index added for performance joins
+    category_id = Column(Integer, ForeignKey("categories.id"), index=True)
     category = relationship("Category", back_populates="products")
+
+    __mapper_args__ = {
+        "version_id_col": version_id
+    }

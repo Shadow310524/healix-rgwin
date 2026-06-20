@@ -126,20 +126,30 @@ def retrieve_relevant_chunks(db: Session, query: str, top_k: int = 3) -> list[di
     if not query_vector:
         return []
         
-    # Get all chunks from DB
-    all_chunks = db.query(ProductChunk).all()
+    # Convert query vector list to postgres vector string representation e.g. '[0.1,0.2,...]'
+    vector_str = "[" + ",".join(map(str, query_vector)) + "]"
     
-    results = []
-    for chunk in all_chunks:
-        sim = cosine_similarity(query_vector, chunk.embedding)
-        results.append({
-            "product_id": chunk.product_id,
-            "text": chunk.chunk_text,
-            "similarity": float(sim)
-        })
+    # Performance Optimization: query pgvector directly inside database using <=> cosine distance.
+    # We use CAST(:query_vector AS vector) to prevent double-colon compilation errors in SQLAlchemy.
+    from sqlalchemy import text
+    sql = text("""
+        SELECT product_id, chunk_text, 1 - (embedding <=> CAST(:query_vector AS vector)) AS similarity
+        FROM product_chunks
+        ORDER BY embedding <=> CAST(:query_vector AS vector)
+        LIMIT :top_k;
+    """)
+    
+    try:
+        query_results = db.execute(sql, {"query_vector": vector_str, "top_k": top_k}).fetchall()
         
-    # Sort by highest similarity
-    results.sort(key=lambda x: x["similarity"], reverse=True)
-    
-    # Return top K results
-    return results[:top_k]
+        return [
+            {
+                "product_id": row[0],
+                "text": row[1],
+                "similarity": float(row[2])
+            }
+            for row in query_results
+        ]
+    except Exception as e:
+        print(f"Error retrieving relevant chunks: {e}")
+        return []

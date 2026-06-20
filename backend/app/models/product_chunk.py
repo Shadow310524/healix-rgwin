@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Float
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 from app.db.session import Base
 
 class ProductChunk(Base):
@@ -10,8 +10,8 @@ class ProductChunk(Base):
     product_id = Column(Integer, ForeignKey("products.id"), index=True)
     chunk_text = Column(Text, nullable=False)
     
-    # We use a standard Postgres ARRAY of Floats to store the vector embeddings
-    # This avoids needing the pgvector extension for simple use cases.
-    embedding = Column(ARRAY(Float), nullable=False)
+    # RAG OPTIMIZATION: Stores vector embeddings natively as pgvector type.
+    # Dimensions: 3072 matching models/gemini-embedding-001 output.
+    embedding = Column(Vector(3072), nullable=False)
     
     product = relationship("Product", backref="chunks")

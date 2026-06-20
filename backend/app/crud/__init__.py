@@ -28,7 +28,7 @@ def create_category(db: Session, category: category_schema.CategoryCreate):
 
 # Product CRUD
 def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(product_model.Product).offset(skip).limit(limit).all()
+    return db.query(product_model.Product).filter(product_model.Product.is_deleted == False).offset(skip).limit(limit).all()
 
 def create_product(db: Session, product: product_schema.ProductCreate):
     db_product = product_model.Product(**product.model_dump())
@@ -38,7 +38,7 @@ def create_product(db: Session, product: product_schema.ProductCreate):
     return db_product
 
 def update_product(db: Session, product_id: int, product: product_schema.ProductUpdate):
-    db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id).first()
+    db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id, product_model.Product.is_deleted == False).first()
     if not db_product:
         return None
     
@@ -51,7 +51,7 @@ def update_product(db: Session, product_id: int, product: product_schema.Product
     return db_product
 
 def delete_product(db: Session, product_id: int):
-    db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id).first()
+    db_product = db.query(product_model.Product).filter(product_model.Product.id == product_id, product_model.Product.is_deleted == False).first()
     if not db_product:
         return None
         
@@ -62,7 +62,8 @@ def delete_product(db: Session, product_id: int):
     from app.models.product_chunk import ProductChunk
     db.query(ProductChunk).filter(ProductChunk.product_id == product_id).delete()
     
-    db.delete(db_product)
+    # Soft Delete: mark as deleted instead of removing database record
+    db_product.is_deleted = True
     db.commit()
     return db_product
 
