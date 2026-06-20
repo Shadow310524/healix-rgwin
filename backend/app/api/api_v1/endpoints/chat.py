@@ -139,6 +139,11 @@ def chat_with_bot(
         )
 
         # 8. Call Gemini with graceful fallback
+        import time
+        from sqlalchemy import text
+        
+        gemini_start_time = time.time()
+        success = True
         try:
             model = genai.GenerativeModel(model_name="gemini-2.5-flash")
             chat = model.start_chat(history=formatted_history)
@@ -154,7 +159,29 @@ def chat_with_bot(
                 "Please try again in a moment, or use the Enquire Now button "
                 "to contact our support team directly."
             )
-
+            success = False
+            
+        duration_ms = int((time.time() - gemini_start_time) * 1000)
+        
+        # Centralized AI analytics logs
+        try:
+            db.execute(
+                text("""
+                    INSERT INTO ai_queries (query, response, duration_ms, success) 
+                    VALUES (:query, :response, :duration_ms, :success)
+                """),
+                {
+                    "query": latest_query[:500],  # cap length to avoid DB overload
+                    "response": reply_text[:500],
+                    "duration_ms": duration_ms,
+                    "success": success
+                }
+            )
+            db.commit()
+        except Exception as db_err:
+            db.rollback()
+            logger.error(f"Failed to log AI query analytics: {db_err}")
+            
         return ChatResponse(reply=reply_text)
 
     except HTTPException:

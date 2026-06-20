@@ -1,7 +1,33 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.models import user as user_model, product as product_model, category as category_model, enquiry as enquiry_model
 from app.schemas import user as user_schema, product as product_schema, category as category_schema, enquiry as enquiry_schema
 from app.core.security import get_password_hash
+
+def log_audit_event(db: Session, user_email: str, action: str, resource: str, result: str, ip_address: str = None, request_id: str = None):
+    """
+    Saves an audit event directly in the database.
+    """
+    try:
+        db.execute(
+            text("""
+                INSERT INTO audit_logs (user_email, action, resource, result, ip_address, request_id) 
+                VALUES (:user_email, :action, :resource, :result, :ip_address, :request_id)
+            """),
+            {
+                "user_email": user_email,
+                "action": action,
+                "resource": resource,
+                "result": result,
+                "ip_address": ip_address,
+                "request_id": request_id
+            }
+        )
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        # Suppress database throwing errors during auditing fails to avoid service crash
+        print(f"Failed to save audit log: {e}")
 
 # User CRUD
 def get_user_by_email(db: Session, email: str):

@@ -57,11 +57,15 @@ cloudinary.config(
 )
 
 
+from sqlalchemy.orm import Session
+from app import crud
+
 @router.post("/image")
 @limiter.limit("10/minute")  # SECURITY: Prevent upload abuse
 async def upload_image(
     request: Request,
     file: UploadFile = File(...),
+    db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
 ):
     """
@@ -76,6 +80,15 @@ async def upload_image(
     """
     # SECURITY layer 1: Content-Type header check
     if file.content_type not in ALLOWED_CONTENT_TYPES:
+        crud.log_audit_event(
+            db, 
+            current_user.email, 
+            "File Uploaded", 
+            f"Filename: {file.filename} | Content-Type: {file.content_type}", 
+            "Failure", 
+            request.client.host,
+            getattr(request.state, "correlation_id", None)
+        )
         raise HTTPException(
             status_code=400,
             detail=f"Invalid file type '{file.content_type}'. Only JPEG, PNG, WebP, and GIF images are accepted.",
@@ -109,13 +122,42 @@ async def upload_image(
 
         url = result.get("secure_url")
         logger.info(f"Upload SUCCESS | File: {file.filename} | URL: {url}")
+        
+        crud.log_audit_event(
+            db, 
+            current_user.email, 
+            "File Uploaded", 
+            f"Filename: {file.filename} | URL: {url}", 
+            "Success", 
+            request.client.host,
+            getattr(request.state, "correlation_id", None)
+        )
         return {"url": url}
 
     except HTTPException:
+        # Audit log for size/magic failures
+        crud.log_audit_event(
+            db, 
+            current_user.email, 
+            "File Uploaded", 
+            f"Filename: {file.filename}", 
+            "Failure", 
+            request.client.host,
+            getattr(request.state, "correlation_id", None)
+        )
         raise
     except Exception as e:
         # SECURITY: Never expose Cloudinary internals to the client.
         logger.error(f"Upload FAILED | File: {file.filename} | Error: {str(e)}", exc_info=True)
+        crud.log_audit_event(
+            db, 
+            current_user.email, 
+            "File Uploaded", 
+            f"Filename: {file.filename} | Error: {str(e)[:100]}", 
+            "Failure", 
+            request.client.host,
+            getattr(request.state, "correlation_id", None)
+        )
         raise HTTPException(
             status_code=500,
             detail="Image upload failed. Please try again or contact support.",

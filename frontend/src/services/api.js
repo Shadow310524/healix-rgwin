@@ -42,6 +42,10 @@ export const productService = {
     const response = await api.get('/products/');
     return response.data;
   },
+  getProduct: async (id) => {
+    const response = await api.get(`/products/${id}`);
+    return response.data;
+  },
   createProduct: async (productData) => {
     const response = await api.post('/products/', productData);
     return response.data;
@@ -92,6 +96,16 @@ export const uploadService = {
 export const chatService = {
   sendMessage: async (messages) => {
     const response = await api.post('/chat/', { messages });
+    return response.data;
+  }
+};
+export const adminService = {
+  getDashboardStats: async () => {
+    const response = await api.get('/admin/dashboard-stats');
+    return response.data;
+  },
+  getAnalyticsStats: async () => {
+    const response = await api.get('/admin/analytics-stats');
     return response.data;
   }
 };

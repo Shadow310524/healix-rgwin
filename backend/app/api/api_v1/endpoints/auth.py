@@ -49,6 +49,16 @@ def login_access_token(
             logger.warning(
                 f"Login FAILED | Email: '{form_data.username}' | IP: {get_remote_address(request)}"
             )
+            # Log failure audit
+            crud.log_audit_event(
+                db, 
+                form_data.username, 
+                "Login", 
+                "Session", 
+                "Failure", 
+                request.client.host, 
+                getattr(request.state, "correlation_id", None)
+            )
             raise HTTPException(
                 status_code=401,
                 detail="Incorrect email or password",
@@ -59,11 +69,29 @@ def login_access_token(
             logger.warning(
                 f"Login BLOCKED | Email: '{form_data.username}' | Reason: Inactive account"
             )
+            crud.log_audit_event(
+                db, 
+                form_data.username, 
+                "Login", 
+                "Session", 
+                "Blocked", 
+                request.client.host, 
+                getattr(request.state, "correlation_id", None)
+            )
             raise HTTPException(status_code=403, detail="Account is inactive")
 
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
         logger.info(f"Login SUCCESS | User ID: {user.id}")
+        crud.log_audit_event(
+            db, 
+            user.email, 
+            "Login", 
+            "Session", 
+            "Success", 
+            request.client.host, 
+            getattr(request.state, "correlation_id", None)
+        )
         return {
             "access_token": security.create_access_token(
                 user.id, expires_delta=access_token_expires

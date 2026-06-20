@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from app.api import deps
 from app import crud, models, schemas
@@ -24,8 +24,18 @@ def create_category(
     *,
     db: Session = Depends(deps.get_db),
     category_in: schemas.CategoryCreate,
+    request: Request,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     category = crud.create_category(db=db, category=category_in)
     logger.info(f"Category CREATED | ID: {category.id} | Name: '{category.name}' | By: {current_user.email}")
+    crud.log_audit_event(
+        db, 
+        current_user.email, 
+        "Category Created", 
+        f"Category ID: {category.id} | Name: '{category.name}'", 
+        "Success", 
+        request.client.host,
+        getattr(request.state, "correlation_id", None)
+    )
     return category

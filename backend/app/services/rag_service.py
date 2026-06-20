@@ -142,14 +142,17 @@ def retrieve_relevant_chunks(db: Session, query: str, top_k: int = 3) -> list[di
     try:
         query_results = db.execute(sql, {"query_vector": vector_str, "top_k": top_k}).fetchall()
         
-        return [
+        # Phase 1 Optimization: Discard chunks that are below similarity cutoff threshold
+        filtered_results = [
             {
                 "product_id": row[0],
                 "text": row[1],
                 "similarity": float(row[2])
             }
             for row in query_results
+            if float(row[2]) >= settings.RAG_SIMILARITY_THRESHOLD
         ]
+        return filtered_results
     except Exception as e:
         print(f"Error retrieving relevant chunks: {e}")
         return []

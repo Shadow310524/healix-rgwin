@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: Optional[str] = None
 
     GEMINI_API_KEY: Optional[str] = None
+    
+    # AI Search Quality: Cutoff similarity score for document retrieval
+    RAG_SIMILARITY_THRESHOLD: float = 0.35
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 

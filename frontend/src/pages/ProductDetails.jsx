@@ -12,9 +12,8 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const products = await productService.getProducts();
-        const found = products.find(p => p.id === parseInt(id));
-        setProduct(found);
+        const res = await productService.getProduct(id);
+        setProduct(res);
       } catch (error) {
         console.error("Error fetching product details", error);
       } finally {
