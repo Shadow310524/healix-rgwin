@@ -12,6 +12,88 @@ const ChatWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Dragging logic
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    // Prevent dragging if user clicks a button or input inside header
+    if (e.target.closest('button') || e.target.closest('input')) return;
+    setIsDragging(true);
+    dragStart.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.target.closest('button') || e.target.closest('input')) return;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    dragStart.current = {
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+      
+      let newX = e.clientX - dragStart.current.x;
+      let newY = e.clientY - dragStart.current.y;
+      
+      // Prevent dragging completely offscreen
+      const boundaryOffset = 60;
+      const minX = -window.innerWidth + boundaryOffset;
+      const maxX = boundaryOffset;
+      const minY = -window.innerHeight + boundaryOffset;
+      const maxY = boundaryOffset;
+      
+      newX = Math.min(Math.max(newX, minX), maxX);
+      newY = Math.min(Math.max(newY, minY), maxY);
+      
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      let newX = touch.clientX - dragStart.current.x;
+      let newY = touch.clientY - dragStart.current.y;
+      
+      const boundaryOffset = 60;
+      const minX = -window.innerWidth + boundaryOffset;
+      const maxX = boundaryOffset;
+      const minY = -window.innerHeight + boundaryOffset;
+      const maxY = boundaryOffset;
+      
+      newX = Math.min(Math.max(newX, minX), maxX);
+      newY = Math.min(Math.max(newY, minY), maxY);
+      
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleMouseUp);
+    };
+  }, [isDragging, position]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -31,7 +113,6 @@ const ChatWidget = () => {
     setIsLoading(true);
 
     try {
-      // Format messages to match expected API schema
       const apiMessages = newMessages.map(msg => ({
         role: msg.role === 'model' ? 'model' : 'user',
         content: msg.content
@@ -47,8 +128,20 @@ const ChatWidget = () => {
     }
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setPosition({ x: 0, y: 0 }); // reset position on close
+  };
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div 
+      style={{
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+        touchAction: isDragging ? 'none' : 'auto'
+      }}
+      className="fixed bottom-6 right-6 z-50"
+    >
       {/* Chat Button */}
       {!isOpen && (
         <button
@@ -61,25 +154,29 @@ const ChatWidget = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="bg-white w-80 sm:w-96 h-[500px] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100 transform transition-all duration-300 ease-out">
-          {/* Header */}
-          <div className="bg-[var(--color-primary)] text-white p-4 flex justify-between items-center shadow-md z-10">
-            <div className="flex items-center gap-2">
+        <div className="bg-white w-80 sm:w-96 h-[500px] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+          {/* Header (Drag Handle) */}
+          <div 
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            className="bg-[var(--color-primary)] text-white p-4 flex justify-between items-center shadow-md z-10 cursor-move select-none"
+          >
+            <div className="flex items-center gap-2 pointer-events-none">
               <Bot className="w-6 h-6" />
               <div>
                 <h3 className="font-bold text-sm">Healix AI Assistant</h3>
                 <span className="text-xs text-teal-100 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span> Online
+                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block animate-ping"></span> Online
                 </span>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-teal-100 hover:text-white transition-colors">
+            <button onClick={handleClose} className="text-teal-100 hover:text-white transition-colors p-1 rounded-full hover:bg-teal-700/50">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-4 overscroll-contain">
             {messages.map((msg, index) => (
               <div 
                 key={index} 

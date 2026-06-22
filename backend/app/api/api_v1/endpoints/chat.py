@@ -17,6 +17,67 @@ limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
 
+
+def find_matching_product(query: str, db: Session) -> dict:
+    """
+    Scans the user query for potential product name mismatches/misspellings.
+    Returns a dictionary mapping misspelled words to corrected product names.
+    """
+    from app.models.product import Product
+    import re
+
+    # 1. Fetch all active product names
+    products = db.query(Product.name).filter(Product.is_deleted == False).all()
+    product_names = [p[0] for p in products]
+
+    # 2. Extract words from query (alphanumeric, lowercase)
+    words = re.findall(r"\b[a-zA-Z0-9-]+\b", query)
+
+    corrections = {}
+
+    def levenshtein_distance(s1, s2):
+        s1 = s1.lower()
+        s2 = s2.lower()
+        if len(s1) < len(s2):
+            return levenshtein_distance(s2, s1)
+        if len(s2) == 0:
+            return len(s1)
+
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+
+        return previous_row[-1]
+
+    for word in words:
+        if len(word) < 4:  # skip very short words
+            continue
+
+        for prod_name in product_names:
+            # Check against the base name (first word of product, e.g. "Dienowin")
+            base_name = prod_name.split()[0]
+
+            # If they typed the exact base name (case-insensitive), no correction needed
+            if word.lower() == base_name.lower():
+                continue
+
+            dist = levenshtein_distance(word, base_name)
+            # Threshold: 1 edit for short words, 2 edits for longer words
+            max_edits = 1 if len(word) <= 5 else 2
+
+            if 0 < dist <= max_edits:
+                corrections[word] = prod_name
+                break
+
+    return corrections
+
+
 # Maximum characters allowed in a single user message
 MAX_MESSAGE_LENGTH = 2000
 
@@ -107,10 +168,24 @@ def chat_with_bot(
 
         logger.info(f"Chat request | Length: {len(latest_query)} chars")
 
-        # 3. Retrieve relevant semantic chunks from DB
+        # 3. Retrieve relevant semantic chunks from DB (checking for spelling mismatches first)
+        corrections = {}
         try:
-            relevant_chunks = retrieve_relevant_chunks(db, latest_query, top_k=3)
-            logger.info(f"RAG retrieved {len(relevant_chunks)} chunks")
+            corrections = find_matching_product(latest_query, db)
+        except Exception as e:
+            logger.error(f"Fuzzy product matching failed: {e}")
+
+        search_query = latest_query
+        correction_notes = []
+        if corrections:
+            for typo, correct_name in corrections.items():
+                correction_notes.append(f"Note: The user typed '{typo}' which has been identified as a mismatch for '{correct_name}'.")
+                # Augment search query to retrieve context for the corrected name as well
+                search_query += f" {correct_name}"
+
+        try:
+            relevant_chunks = retrieve_relevant_chunks(db, search_query, top_k=3)
+            logger.info(f"RAG retrieved {len(relevant_chunks)} chunks for search query: '{search_query}'")
         except Exception as rag_err:
             logger.error(f"RAG retrieval failed: {rag_err}", exc_info=True)
             relevant_chunks = []
@@ -132,9 +207,14 @@ def chat_with_bot(
             formatted_history.append({"role": role, "parts": [msg.content]})
 
         # 7. SECURITY: User input is ISOLATED in a clearly delimited block.
-        # This prevents the user's text from overriding system instructions.
+        # We also inject the correction notes to inform the model of the corrected names.
+        correction_context = ""
+        if correction_notes:
+            correction_context = "\n".join(correction_notes) + "\n\n"
+
         final_prompt = (
             f"SYSTEM INSTRUCTIONS:\n{system_instruction}\n\n"
+            f"{correction_context}"
             f"---USER QUESTION BEGIN---\n{latest_query}\n---USER QUESTION END---"
         )
 

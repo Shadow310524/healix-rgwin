@@ -11,7 +11,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <Pill className="h-8 w-8 text-[var(--color-primary)]" />
+              <img src="/logo.svg" className="h-8 w-8 object-contain" alt="Healix Logo" />
               <span className="font-bold text-xl text-[var(--color-primary-dark)]">Healix</span>
             </Link>
           </div>
