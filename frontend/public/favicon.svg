@@ -1,12 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <!-- Top crescent swoosh in black -->
-  <path d="M 16,44 C 16,16 84,16 84,44 C 76,26 24,26 16,44 Z" fill="#1A1A1A" />
-  
-  <!-- Bottom crescent swoosh in red -->
-  <path d="M 84,56 C 84,84 16,84 16,56 C 24,74 76,74 84,56 Z" fill="#E53935" />
-  
-  <!-- Central RG letters in stylish bold serif -->
-  <text x="50%" y="60%" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="28" text-anchor="middle" letter-spacing="-1">
-    <tspan fill="#E53935">R</tspan><tspan fill="#1A1A1A">G</tspan>
-  </text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- Top Black Swooshes -->
+  <!-- Outer/upper black swoosh -->
+  <path d="M 150,180 C 160,120 230,90 320,90 C 355,90 370,110 370,180 C 350,130 300,105 240,115 C 190,123 165,150 150,180 Z" fill="#1A1A1A" />
+  <!-- Inner/lower black swoosh -->
+  <path d="M 180,180 C 195,140 240,120 315,148 C 275,130 215,145 180,180 Z" fill="#1A1A1A" />
+
+  <!-- Bottom Red Swooshes -->
+  <!-- Outer/lower red swoosh -->
+  <path d="M 350,320 C 340,380 270,410 180,410 C 145,410 130,390 130,320 C 150,370 200,395 260,385 C 310,377 335,350 350,320 Z" fill="#D32F2F" />
+  <!-- Inner/upper red swoosh -->
+  <path d="M 320,320 C 305,360 260,380 185,352 C 225,370 285,355 320,320 Z" fill="#D32F2F" />
+
+  <!-- Central "RG" Text in serif font -->
+  <text x="250" y="295" font-family="Georgia, 'Times New Roman', serif" font-weight="900" font-size="130" fill="#1A1A1A" text-anchor="middle" letter-spacing="-6">RG</text>
 </svg>
