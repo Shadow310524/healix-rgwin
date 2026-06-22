@@ -126,17 +126,16 @@ async def request_logging_middleware(request: Request, call_next):
         
         # Persistent Audit Logging for Critical Failures
         try:
-            db = SessionLocal()
-            log_audit_event(
-                db,
-                user_email or "System",
-                "Error",
-                f"{request.method} {request.url.path}",
-                "Failure",
-                client_ip,
-                correlation_id
-            )
-            db.close()
+            with SessionLocal() as db:
+                log_audit_event(
+                    db,
+                    user_email or "System",
+                    "Error",
+                    f"{request.method} {request.url.path}",
+                    "Failure",
+                    client_ip,
+                    correlation_id
+                )
         except Exception as audit_err:
             logger.error(f"Audit log failed during 500 error: {audit_err}")
             
@@ -194,9 +193,8 @@ def health_check():
     """
     db_status = "connected"
     try:
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))
-        db.close()
+        with SessionLocal() as db:
+            db.execute(text("SELECT 1"))
     except Exception:
         db_status = "disconnected"
         
@@ -224,9 +222,8 @@ def readiness_check():
     
     # 1. Database Check
     try:
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))
-        db.close()
+        with SessionLocal() as db:
+            db.execute(text("SELECT 1"))
         checks["database"] = "connected"
     except Exception as e:
         logger.error(f"Readiness DB probe failed: {e}")
