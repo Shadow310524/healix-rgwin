@@ -1,4 +1,3 @@
-import { Pill } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -8,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <Pill className="h-8 w-8 text-[var(--color-primary-light)]" />
+              <img src="/logo.svg" className="h-8 w-8 object-contain brightness-0 invert" alt="Healix Logo" />
               <span className="font-bold text-xl">Healix</span>
             </div>
             <p className="text-gray-400 text-sm">
