@@ -120,7 +120,7 @@ const Products = () => {
         </div>
         )}
         
-        {filteredProducts.length === 0 && (
+        {!loading && filteredProducts.length === 0 && (
           <div className="text-center py-20 text-[var(--color-text-muted)]">
             No products found matching your search.
           </div>

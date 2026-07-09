@@ -233,13 +233,13 @@ def readiness_check():
     if settings.GEMINI_API_KEY:
         checks["gemini"] = "configured"
     else:
-        status_code = 503
+        checks["gemini"] = "not_configured"
         
     # 3. Cloudinary Check
     if settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY:
         checks["cloudinary"] = "configured"
     else:
-        status_code = 503
+        checks["cloudinary"] = "not_configured"
         
     # 4. Env Configuration Check
     if settings.SECRET_KEY and settings.SECRET_KEY != "DEVELOPMENT_SECRET_KEY_DONT_USE_IN_PROD":
