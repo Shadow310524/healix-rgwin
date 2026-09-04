@@ -44,9 +44,9 @@ const AdminLogin = () => {
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">Admin Email</label>
+              <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">Admin Username / Email</label>
               <input
-                type="email"
+                type="text"
                 required
                 className="input-field"
                 value={email}
