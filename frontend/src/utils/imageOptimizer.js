@@ -31,8 +31,8 @@ export function getOptimizedImageUrl(url, options = {}) {
 
   // 1. Cloudinary optimization
   if (url.includes('res.cloudinary.com')) {
-    // Cloudinary transformation params
-    const transforms = [`f_${format}`, `q_${quality}`];
+    // Cloudinary transformation params: modern format, auto compression, retina DPR
+    const transforms = [`f_${format}`, `q_${quality}`, 'dpr_auto'];
     if (width) transforms.push(`w_${Math.round(width)}`);
     if (height) transforms.push(`h_${Math.round(height)}`);
     if (crop) transforms.push(`c_${crop}`);
