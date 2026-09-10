@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 from app.api import deps
 from app import crud, models, schemas
@@ -11,11 +11,13 @@ router = APIRouter()
 
 @router.get("/", response_model=List[schemas.Category])
 def read_categories(
+    response: Response,
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
     categories = crud.get_categories(db, skip=skip, limit=limit)
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=600"
     logger.info(f"Categories listed | Count: {len(categories)}")
     return categories
 

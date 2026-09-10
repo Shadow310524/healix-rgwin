@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import OptimizedImage from '../components/common/OptimizedImage';
 
 const About = () => {
   const headerRef = useRef(null);
@@ -19,10 +20,13 @@ const About = () => {
           className="absolute inset-0 z-0 opacity-20"
           style={{ y: yBg }}
         >
-          <img 
-            src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
+          <OptimizedImage 
+            src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=70" 
             alt="Medical background" 
-            className="w-full h-full object-cover"
+            width={1200}
+            priority={true}
+            className="w-full h-full"
+            imgClassName="w-full h-full object-cover"
           />
         </motion.div>
         
@@ -54,10 +58,12 @@ const About = () => {
               className="relative group"
             >
               <div className="absolute -inset-4 bg-gradient-to-tr from-[var(--color-primary-light)] to-teal-100 rounded-3xl opacity-50 transform group-hover:rotate-2 transition-transform duration-500"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+              <OptimizedImage 
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=75" 
                 alt="Laboratory research" 
-                className="relative rounded-2xl shadow-2xl w-full h-[500px] object-cover transform group-hover:-translate-y-2 transition-transform duration-500"
+                width={800}
+                className="relative rounded-2xl shadow-2xl w-full h-[500px] transform group-hover:-translate-y-2 transition-transform duration-500"
+                imgClassName="w-full h-[500px] object-cover rounded-2xl"
               />
             </motion.div>
             

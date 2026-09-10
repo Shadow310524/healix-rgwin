@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, MessageSquare, Shield, Activity } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { productService } from '../services/api';
+import OptimizedImage from '../components/common/OptimizedImage';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -25,7 +26,20 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="py-20 text-center">Loading product details...</div>
+      <div className="py-12 bg-white min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-32 h-6 bg-slate-200 rounded mb-8 animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="rounded-2xl bg-slate-100 h-96 md:h-[500px] animate-pulse" />
+            <div className="space-y-6">
+              <div className="w-28 h-6 bg-slate-200 rounded-full animate-pulse" />
+              <div className="w-3/4 h-10 bg-slate-200 rounded animate-pulse" />
+              <div className="w-1/3 h-8 bg-slate-200 rounded animate-pulse" />
+              <div className="w-full h-24 bg-slate-100 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -57,8 +71,15 @@ const ProductDetails = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl overflow-hidden shadow-lg border border-[var(--color-border)] bg-gray-50 h-96 md:h-[500px]">
-              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+            <div className="rounded-2xl overflow-hidden shadow-lg border border-[var(--color-border)] bg-gray-50 h-96 md:h-[500px] flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-teal-50/20">
+              <OptimizedImage 
+                src={product.image_url} 
+                alt={product.name} 
+                width={900} 
+                priority={true}
+                className="w-full h-full flex items-center justify-center"
+                imgClassName="max-w-full max-h-full object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.12)]" 
+              />
             </div>
           </motion.div>
 

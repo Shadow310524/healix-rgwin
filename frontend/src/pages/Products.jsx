@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/api';
+import OptimizedImage from '../components/common/OptimizedImage';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,7 +73,21 @@ const Products = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-[var(--color-text-muted)]">Loading products...</div>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="flex flex-col sm:flex-row h-72 rounded-2xl bg-white/40 border border-white/60 animate-pulse overflow-hidden">
+                <div className="w-full sm:w-2/5 bg-slate-200/60 h-48 sm:h-full" />
+                <div className="p-8 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="w-24 h-3 bg-slate-200/80 rounded" />
+                    <div className="w-48 h-7 bg-slate-200 rounded" />
+                    <div className="w-full h-12 bg-slate-200/60 rounded-xl mt-4" />
+                  </div>
+                  <div className="w-36 h-9 bg-slate-200/80 rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {filteredProducts.map((product, idx) => (
@@ -85,10 +100,13 @@ const Products = () => {
               className="flex flex-col sm:flex-row h-full overflow-hidden bg-white/60 backdrop-blur-2xl border border-white sm:rounded-2xl shadow-[0_8px_32px_rgba(31,38,135,0.08)] hover:shadow-[0_16px_48px_rgba(31,38,135,0.15)] hover:bg-white/80 transition-all duration-500 group"
             >
               <div className="w-full sm:w-2/5 h-64 sm:h-auto overflow-hidden relative p-8 bg-gradient-to-br from-white/40 to-transparent border-b sm:border-b-0 sm:border-r border-white flex items-center justify-center">
-                <img 
+                <OptimizedImage 
                   src={product.image_url} 
-                  alt={product.name} 
-                  className="max-w-full max-h-full object-contain mix-blend-multiply drop-shadow-[0_20px_20px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_30px_30px_rgba(0,0,0,0.25)]" 
+                  alt={product.name}
+                  width={480}
+                  priority={idx < 4}
+                  className="w-full h-full flex items-center justify-center"
+                  imgClassName="max-w-full max-h-full object-contain mix-blend-multiply drop-shadow-[0_20px_20px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_30px_30px_rgba(0,0,0,0.25)]" 
                 />
               </div>
               <div className="flex-grow p-8 flex flex-col justify-between bg-transparent w-full sm:w-3/5">

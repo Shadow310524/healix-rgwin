@@ -118,6 +118,9 @@ async def upload_image(
             contents,
             folder="healix_products",
             resource_type="image",
+            transformation=[
+                {"quality": "auto", "fetch_format": "auto"}
+            ],
         )
 
         url = result.get("secure_url")

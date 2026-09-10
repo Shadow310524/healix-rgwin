@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, BackgroundTasks, Request, Response
 from sqlalchemy.orm import Session
 from app.api import deps
 from app import crud, models, schemas
@@ -12,17 +12,20 @@ router = APIRouter()
 
 @router.get("/", response_model=List[schemas.Product])
 def read_products(
+    response: Response,
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
     products = crud.get_products(db, skip=skip, limit=limit)
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=120"
     logger.info(f"Products listed | Count: {len(products)}")
     return products
 
 @router.get("/{id}", response_model=schemas.Product)
 def read_product(
     *,
+    response: Response,
     db: Session = Depends(deps.get_db),
     id: int,
 ) -> Any:
@@ -45,6 +48,7 @@ def read_product(
         db.rollback()
         logger.error(f"Failed to increment views for product {id}: {e}")
         
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=120"
     return product
 
 @router.post("/", response_model=schemas.Product)

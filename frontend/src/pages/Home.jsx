@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, Shield, Activity, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useRef } from 'react';
+import OptimizedImage from '../components/common/OptimizedImage';
 
 const Home = () => {
   const heroRef = useRef(null);
@@ -62,10 +63,13 @@ const Home = () => {
               className="relative hidden md:block"
             >
               <div className="w-full h-[500px] bg-gradient-to-tr from-[var(--color-primary)] to-teal-300 rounded-3xl opacity-20 absolute -top-4 -left-4 transform -rotate-3"></div>
-              <img 
+              <OptimizedImage 
                 src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
                 alt="Medical professional holding a pill bottle" 
-                className="w-full h-[500px] object-cover rounded-3xl shadow-2xl relative z-10"
+                width={800}
+                priority={true}
+                className="w-full h-[500px] rounded-3xl shadow-2xl relative z-10"
+                imgClassName="w-full h-[500px] object-cover rounded-3xl"
               />
             </motion.div>
           </div>

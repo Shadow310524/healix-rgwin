@@ -2,6 +2,7 @@ import time
 import traceback
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -44,6 +45,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept"],
 )
+
+# Enable automatic GZip response compression (>1000 bytes)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 # ── Secure Response Headers Middleware ────────────────────────────────────────
