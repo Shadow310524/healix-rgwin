@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models import user as user_model, product as product_model, category as category_model, enquiry as enquiry_model
 from app.schemas import user as user_schema, product as product_schema, category as category_schema, enquiry as enquiry_schema
 from app.core.security import get_password_hash
@@ -54,7 +54,14 @@ def create_category(db: Session, category: category_schema.CategoryCreate):
 
 # Product CRUD
 def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(product_model.Product).filter(product_model.Product.is_deleted == False).offset(skip).limit(limit).all()
+    return (
+        db.query(product_model.Product)
+        .options(joinedload(product_model.Product.category))
+        .filter(product_model.Product.is_deleted == False)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 def create_product(db: Session, product: product_schema.ProductCreate):
     db_product = product_model.Product(**product.model_dump())
